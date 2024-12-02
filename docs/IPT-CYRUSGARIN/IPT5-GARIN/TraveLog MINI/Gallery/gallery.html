@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="Cyrus Garin">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Log</title>
+  <link rel="icon" type="image/x-icon" href="LOGO.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 0;
+    }
+    
+    .wat {
+      width: 100%;
+      height: 100vh;
+      background-image: linear-gradient(rgba(0,0,0,0.10),rgba(0, 0, 0, 0.75)), url('beach.jpg');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    
+    .wat::-webkit-scrollbar {
+      visibility: hidden;
+      width: 0;
+    }
+    
+    .logo {
+      width: 100px;
+      height: 80px;
+      left: 20px;
+      margin-left: 50px;
+      margin-top: 40px;
+    }
+    
+    .toggle-btn {
+      cursor: pointer;
+      position: absolute;
+      top: 10px;
+      left: 1170px;
+      overflow-y: auto;    
+    }
+    
+    .toggle-btn .bar1, .toggle-btn .bar2, .toggle-btn .bar3 {
+      width: 45px;
+      height: 5px;
+      background-color: black;
+      margin: 6px 0;
+      transition: 0.4s;
+    }
+    
+    .toggle-btn.change .bar1 {
+      transform: translate(0, 11px) rotate(-45deg);
+    }
+    
+    .toggle-btn.change .bar2 {
+      opacity: 0;
+    }
+    
+    .toggle-btn.change .bar3 {
+      transform: translate(0, -11px) rotate(45deg);
+    }
+    
+    .sidebar {
+      position: fixed;
+      top: 50px;
+      left: 1100px;
+      width: 100px;
+      height: auto;
+      background-color: #000000;
+      color: #fff;
+      overflow-y: auto;      
+      display: inline;                
+      animation: fade-in 0.5s ease-in forwards; 
+    }
+    
+    @keyframes fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: none; 
+      flex-direction: column;
+      animation: fade-in 0.5s ease-in forwards; 
+    }
+    
+    .sidebar ul.active {
+      display: flex; 
+      animation: fade-in 0.5s ease-in forwards; 
+    }
+    
+    .sidebar ul li {
+      padding: 15px;
+      border-bottom: 1px solid #777;
+      animation: fade-in 0.5s ease-in forwards; 
+    }
+    
+    .sidebar ul li:hover {
+      background-color: #555;
+    }
+    
+    .sidebar ul li a {
+      color: #fff;
+      text-decoration: none;
+      animation: fade-in 0.5s ease-in forwards; 
+    }
+    
+    .gallery-container {
+      position: absolute;
+      top: 62%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      max-width: 1250px;
+      height: 390px;
+      background-color: rgba(0, 0, 0, 0.50);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      z-index: 2;
+      overflow: -moz-hidden-unscrollable;
+      box-sizing: border-box;
+      padding: 5px;
+      border: 15px solid black;
+    }
+    
+    .upload-button {
+      display: inline-block;
+      position: relative;
+      top:auto;
+      left:auto;
+      margin-top: 45px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    
+    .iframe-container {
+      border: 10px solid black;
+      display: none;
+      position: absolute;
+      top: 62%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      overflow: hidden;
+      margin: 0 auto;
+      z-index: 9999;
+    }
+    
+    .iframe-container iframe {
+      width: 525px;
+      height: 350px;
+      border: none;
+      transform-origin: top left;
+      transform: scale(1); 
+    }
+    
+    .gallery-container::-webkit-scrollbar {
+      width: 0;
+    }
+    
+    .gallery-container.hidden {
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s, opacity 0.3s ease-in-out;
+    }
+    
+    .gallery {
+      max-width: 1490px;
+      margin: 0 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .gallery img {
+      width: 95px;
+      height: 95px;
+      transition: all 0.3s ease;
+      padding: 1px;
+      border: 10px solid black;
+      background-color: black;
+      margin: 0px;
+    }
+    
+    .gallery img.inactive {
+      opacity: 0.5;
+      filter: grayscale(100%);
+    }
+    
+    .gallery img.rotated {
+      content-visibility: hidden;
+      width: 95px;
+      height: 95px;
+      border: 15px outset black;
+      padding: 1px;
+      background-color: white;
+      margin: 0px;
+    }
+    
+    .gallery .white-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .gallery .white-box .box-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: black;
+      font-size: 16px;
+      font-weight: bold;
+      visibility: hidden; 
+    }
+    
+    .gallery img.rotated + .white-box .box-text {
+      visibility: visible; 
+    }
+    
+    .journalkubir {
+      background-image: linear-gradient(rgba(0,0,0,0.10),rgba(0, 0, 0, 0.75)), url(maangas.jpg);
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .taeyey {
+      background-image:  linear-gradient(rgba(0, 0, 0, 0.70),rgba(0, 0, 0, 0.90)), url('trioeyy.JPG');
+      background-size: cover;
+      background-position: center;
+      padding: 25px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: black;
+      font-style: Arial;
+      text-transform: uppercase;
+      background-color: white;
+      border: solid;
+      padding: 25px;
+    }
+    
+    h2 {
+      font-family: arial; 
+      font-size: 100%; 
+      color: black; 
+      background-color: white; 
+      text-transform: uppercase;
+    }
+    
+    p {
+      color: whitesmoke;
+      font-style: Arial;
+      font-size: 17px;
+    }
+    
+    p2 {
+      color: whitesmoke;
+      font-style: Arial;
+      font-size: 17px;
+    }
+  </style>
+</head>
+<body>
+  <section id="section1">
+    <div class="wat">
+      <img src="LOGO.png" class="logo">
+      <div class="toggle-btn" onclick="toggleSidebar()">
+        <div class="bar1"></div>
+        <div class="bar2"></div>
+        <div class="bar3"></div>
+      </div>
+      <div class="sidebar">
+        <ul id="sidebarList">
+          <li><a href="C:\Users\Administrator\Documents\TraveLog MINI\sample.html">Home</a></li>
+          <li><a href="C:\Users\Administrator\Documents\TraveLog MINI\About Me\index.html">About Me</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="gallery-container">
+      <div class="gallery">
+          <img src="picsweb\gallery\im1.jpg" alt="Image 1">
+          <img src="picsweb\gallery\im2.jpg" alt="Image 2">
+          <img src="picsweb\gallery\im3.jpg"alt="Image 3">
+          <img src="picsweb\gallery\im4.jpg"alt="Image 4">
+          <img src="picsweb\gallery\im5.jpg"alt="Image 5">
+          <img src="picsweb\gallery\im6.jpg"alt="Image 6">
+          <img src="picsweb\gallery\im7.jpg"alt="Image 7">
+          <img src="picsweb\gallery\im8.jpg"alt="Image 8">
+          <img src="picsweb\gallery\im9.jpg"alt="Image 9">
+          <img src="picsweb\gallery\im10.jpg"alt="Image 10">
+          <img src="picsweb\gallery\im11.jpg"alt="Image 11">
+          <img src="picsweb\gallery\im12.jpg"alt="Image 12">
+          <img src="picsweb\gallery\im13.jpg"alt="Image 13">
+          <img src="picsweb\gallery\im14.jpg"alt="Image 14">
+          <img src="picsweb\gallery\im15.jpg"alt="Image 15">
+          <img src="picsweb\gallery\im16.jpg"alt="Image 16">
+          <img src="picsweb\gallery\im17.jpg"alt="Image 17">
+          <img src="picsweb\gallery\im18.jpg"alt="Image 18">
+          <img src="picsweb\gallery\im19.jpg"alt="Image 19">
+          <img src="picsweb\gallery\im20.jpg"alt="Image 20">
+          <img src="picsweb\gallery\im21.jpg"alt="Image 21">
+          <img src="picsweb\gallery\im22.jpg"alt="Image 22">
+          <img src="picsweb\gallery\im23.jpg"alt="Image 23">
+          <img src="picsweb\gallery\im24.jpg"alt="Image 24">
+          <img src="picsweb\gallery\im25.jpg"alt="Image 25">
+          <img src="picsweb\gallery\im26.jpg"alt="Image 26">
+          <img src="picsweb\gallery\im27.jpg"alt="Image 27">
+          <img src="picsweb\gallery\im28.jpg"alt="Image 28">
+          <img src="picsweb\gallery\im29.jpg"alt="Image 29">
+          <img src="picsweb\gallery\im30.jpg"alt="Image 30">
+          <br>
+          <br>
+
+<div class="iframe-container" id="iframeContainer">
+  <iframe src="rimilin.html"></iframe>
+</div>
+          <br>
+          <br>
+          <br>
+       </div>
+       <br>
+       <br>
+      </div>
+    </section>
+
+
+  <section id="section2">
+    <div class="journalkubir">
+      <h1><center><strong>JOURNAL</center></strong></h1>
+      
+      <div class="taeyey">
+        <p><b>Garin, Cyrus: </b> <u>Timestamps</u>: 4:01 am: Prepared for ride-out, eaten breakfast, checked bike , and tools to bring.
+5:00 am: Meet up with friends, talked a bit then proceeds to go.
+<br>-
+(5:10 to 6:30am: on the road, cycling)
+<br>-
+6:36 am: reached Malolos, Bulacan. We rested for a bit, talked about reaching the place before thus bore us out jokingly. Took selfies and proceeds to go to our real destination.
+<br>-
+(6:36am to 7:15am: continued cycling)
+<br>-
+7:16am: We stopped for a while and then had another round of breakfast, had conversation (again), rested and took pictures for a while then proceeds to continue cycling.
+<br>-
+7:54am: Finally reached Pampanga, but this isn't where we actually wanna go. We decided to go further until the capital city of Pampanga which will be our last stop and will take our time resting there.
+<br>-
+8:31am: got tired on the way and stopped for a while.
+<br>-
+8:58am to 9:56am: Reached the main point of our trip (San Fernando, Pampanga). Took pictures (as usual), had chats, ate some snack that my uncle had given me but we also bought more snacks because thats more the point of our ride, to eat. After all that we decided to go back because the heat will be deadly if we decided to stay a bit longer so we packed our things and of course, cycle.
+<br>-
+11:53am to 1:00pm: (Malolos, Bulacan) We stopped to had lunch for a while and because the heat also, we can't endure having a continouos cycle on the road because we might get heatstroke also took pics and vid again lol.
+<br>-
+(1:01 to 3:20pm: continued cycling so we can get back home already.)
+<br>-
+3:31pm: Reached the end of our journey: Got home, rested, change clothes ,and ate another session of meal then after all that the most rewarding thing of the journey, S L E E P.
+<br>
+</p>
+<br>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function showIframe() {
+      var iframeContainer = document.getElementById('iframeContainer');
+      iframeContainer.style.display = 'block';
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const sidebarList = document.querySelector('#sidebarList');
+      const toggleBtn = document.querySelector('.toggle-btn');
+
+      sidebar.classList.toggle('active');
+      sidebarList.classList.toggle('active');
+      toggleBtn.classList.toggle('change');
+    }
+
+    const images = document.querySelectorAll('.gallery img');
+
+    images.forEach(image => {
+      let isActive = false;
+      let isRotated = false;
+
+      image.addEventListener('click', () => {
+        if (!isActive) {
+          image.style.position = 'fixed';
+          image.style.top = '50%';
+          image.style.left = '50%';
+          image.style.transform = 'translate(-50%, -50%) scale(3.0)';
+          image.style.zIndex = '9999';
+
+          images.forEach(otherImage => {
+            if (otherImage !== image) {
+              otherImage.style.opacity = '0.5';
+              otherImage.style.filter = 'blur(3px)';
+            }
+          });
+
+          isActive = true;
+        } else if (!isRotated) {
+          image.classList.add('rotated');
+          image.style.transform += ' rotateY(180deg)';
+          isRotated = true;
+
+          var whiteBox = document.createElement('div');
+          whiteBox.classList.add('white-box');
+
+          var boxText = document.createElement('span');
+          boxText.classList.add('box-text');
+
+          if (image.id === 'im1') {
+              boxText.textContent = 'titasdkjaskldjaslkdj';
+          } else if (image.id === 'im2') {
+              boxText.textContent = 'Text for Image 2';
+          }
+
+          whiteBox.appendChild(boxText);
+          image.parentNode.appendChild(whiteBox);
+        } else {
+          image.style.transform = 'scale(1)';
+          image.style.zIndex = '1';
+          image.style.position = 'static';
+          image.style.filter = 'none';
+
+          images.forEach(otherImage => {
+            otherImage.style.opacity = '1';
+            otherImage.style.filter = 'none';
+            otherImage.classList.remove('rotated');
+          });
+
+          isActive = false;
+          isRotated = false;
+        }
+      });
+    });
+  </script>
+</body> 
+</html>
